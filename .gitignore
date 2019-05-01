@@ -102,3 +102,4 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+code/HelloServer_trial/private_server_details.h

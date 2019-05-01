@@ -23,6 +23,7 @@
  *  - 'Wemos D1 mini: A first look at this ESP8266 ' https://www.youtube.com/watch?v=AuFXuEYd1Yk
  *  - pins sketch https://escapequotes.net/esp8266-wemos-d1-mini-pins-and-diagram/
  *  - https://www.electroschematics.com/12012/rotary-encoder-arduino/
+ *    https://raspi.tv/2017/wireless-remote-sensing-with-wemos-d1-mini-arduino-ide-raspberry-pi-and-lighttpd-web-server
  *  
  *  examplary serial output at 115200:
  *  
@@ -70,6 +71,8 @@ void read_and_print_analog();
 
 #define ANALOG_PIN A0
 
+int loopCounter=0;
+
 /** program content */
 void setup() 
 {
@@ -88,7 +91,13 @@ void loop()
   // put your main code here, to run repeatedly:
   blink_example_cycle();
 
-  read_and_print_analog();
+  if (loopCounter>1)  //32000
+  {
+    read_and_print_analog();
+    loopCounter=0;
+  }
+
+  ++loopCounter;
 }
 
 /** utils functions */
@@ -104,11 +113,11 @@ void blink_example_cycle()
 {
   // light on
   digitalWrite(LED_BUILTIN, LOW);   // Turn the LED on (Note that LOW is the voltage level
-  delay(0500);                      // Wait for a 0.5 second
+  delay(050);                      // Wait for a 0.5 second
   print_led_state();
   // ligth off
   digitalWrite(LED_BUILTIN, HIGH);  // Turn the LED off by making the voltage HIGH
-  delay(4500);                      // Wait for 4.5 seconds (to demonstrate the active low LED)
+  delay(450);                      // Wait for 4.5 seconds (to demonstrate the active low LED)
   print_led_state();
 }
 
