@@ -1,0 +1,10 @@
+our hardware consists with 
+https://www.servocity.com/1621-rpm-hd-premium-planetary-gear-motor-w-encoder
+or ?
+https://www.servocity.com/1621-rpm-hd-premium-planetary-gear-motor
+
+relevant bridge explanation by , minute 6:40:
+https://www.youtube.com/watch?v=dyjo_ggEtVU
+
+HW similar to :
+https://www.banggood.com/Wholesale-Dual-H-Bridge-DC-Stepper-Motor-Drive-Controller-Board-Module-Arduino-L298N-p-42826.html?p=4N130123074053201807&utm_campaign=23074053&utm_content=3312&cur_warehouse=CN

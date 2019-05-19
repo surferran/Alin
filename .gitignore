@@ -103,3 +103,4 @@ venv.bak/
 # mypy
 .mypy_cache/
 code/HelloServer_trial/private_server_details.h
+code/esp8266code/private_server_details.h
