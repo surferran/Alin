@@ -8,6 +8,13 @@
  *  http://10.0.0.70/inline
  *  
  *  why must it connect to local router to act as wifi server??
+ *  
+ *  see this for intro :
+ *  https://tttapa.github.io/ESP8266/Chap07%20-%20Wi-Fi%20Connections.html 
+ *  a must try:
+ *  https://tttapa.github.io/ESP8266/Chap10%20-%20Simple%20Web%20Server.html
+ *  https://tttapa.github.io/ESP8266/Chap16%20-%20Data%20Logging.html
+ *  
  */
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -72,7 +79,7 @@ void setup(void) {
   Serial.println(WiFi.localIP());
 
   if (MDNS.begin("esp8266")) {
-    Serial.println("MDNS responder started");
+    Serial.println("mDNS responder started: you can address esp8266.local instead IP");
   }
 
   server.on("/", handleRoot);
