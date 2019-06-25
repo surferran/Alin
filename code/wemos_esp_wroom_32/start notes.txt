@@ -23,3 +23,7 @@ https://medium.com/@tomac/turning-a-10-esp32-into-a-hacker-arsenals-winx-portabl
 
 
 https://oneguyoneblog.com/2018/12/28/wemos-d1-esp-wroom-02-arduino-ide/
+
+//
+search for 
+wemos esp32 Brownout detector was triggered

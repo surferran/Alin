@@ -15,11 +15,20 @@
  *  https://tttapa.github.io/ESP8266/Chap10%20-%20Simple%20Web%20Server.html
  *  https://tttapa.github.io/ESP8266/Chap16%20-%20Data%20Logging.html
  *  
+ *  use this to solve esp32-wemos init problem
+ *  https://github.com/espressif/arduino-esp32/issues/863
  */
-#include <ESP8266WiFi.h>
+// if using 8266 model #include <ESP8266WiFi.h>
+// #include <WiFiClient.h>
+#include <WiFi.h>
 #include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
+#include <WebServer.h>
+
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
+//-"- #include <ESP8266WebServer.h>
+//-"- #include <ESP8266mDNS.h>
 
 #include "private_server_details.h"
 
@@ -31,9 +40,10 @@
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
-ESP8266WebServer server(80);
+//ESP8266WebServer server(80);
+WebServer server(80);
 
-const int led = LED_BUILTIN; //13;
+const int led = 13;//LED_BUILTIN; //13;
 
 void handleRoot() {
   digitalWrite(led, 1);
@@ -59,7 +69,10 @@ void handleNotFound() {
   digitalWrite(led, 0);
 }
 
-void setup(void) {
+void setup(void) 
+{
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
+  
   pinMode(led, OUTPUT);
   digitalWrite(led, 0);
   Serial.begin(115200);
@@ -78,9 +91,9 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
-  if (MDNS.begin("esp8266")) {
-    Serial.println("mDNS responder started: you can address esp8266.local instead IP");
-  }
+//  if (MDNS.begin("esp8266")) {
+  //  Serial.println("mDNS responder started: you can address esp8266.local instead IP");
+ /// }
 
   server.on("/", handleRoot);
 
@@ -98,5 +111,5 @@ void setup(void) {
 
 void loop(void) {
   server.handleClient();
-  MDNS.update();
+  //MDNS.update();
 }

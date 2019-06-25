@@ -1,0 +1,20 @@
+encoder sources:
+
+https://github.com/madhephaestus/ESP32Encoder/
+
+https://howtomechatronics.com/tutorials/arduino/rotary-encoder-works-use-arduino/
+
+output A is clk
+output B is DT
+SW is button - not usefull for us.
+
+by:
+https://github.com/igorantolic/ai-esp32-rotary-encoder
+
+
+
+web server source:
+web server should be from :
+https://circuits4you.com/2018/11/20/web-server-on-esp32-how-to-update-and-display-sensor-values/
+https://circuits4you.com/2018/02/04/esp8266-ajax-update-part-of-web-page-without-refreshing/
+
