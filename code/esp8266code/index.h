@@ -1,6 +1,9 @@
 const char MAIN_page[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
+<head>
+	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">
+<title>Alin web page</title>
 <style>
 .card{
     max-width: 400px;
@@ -13,10 +16,10 @@ const char MAIN_page[] PROGMEM = R"=====(
      box-shadow: 0px 2px 18px -4px rgba(0,0,0,0.75);
 }
 </style>
+</head>
 <body>
 
 <div class="card">
-  <h4>Alin's web page. no need to refresh</h4><br>
   <h1>Sensor Value:<span id="encValue">0</span></h1><br>
 </div>
 <script>

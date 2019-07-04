@@ -23,14 +23,18 @@ todo:
  */
  /* more ref from
   *  https://robotzero.one/sending-data-esp8266-to-esp8266/
+  *  
+  *  setting the (soft)ip to constant: 192.168.1.1
+  *  stting time out to router connection, and alarm to StandAlone mode. TODO
+  *  
   */
 ///////////////////////////////
 #include "general_defs.h"
 #define MY_CARD_IS_ESP8266
 //#define MY_CARD_IS_ESP32
-//#define MY_WIFI_TYPE_IS_AP
+#define MY_WIFI_TYPE_IS_AP
 //#define MY_WIFI_TYPE_IS_STA
-#define MY_WIFI_TYPE_IS_BOTH
+//#define MY_WIFI_TYPE_IS_BOTH
 ///////////////////////////////
 
 #ifdef MY_CARD_IS_ESP8266
@@ -39,9 +43,9 @@ todo:
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 ESP8266WebServer server(80);
-#define ANALOG_PIN        A0
-const int led = LED_BUILTIN; //13;
-#define DI_INPUT_SWITCH  D1
+#define   ANALOG_PIN        A0
+#define   DI_INPUT_SWITCH   D1
+const int led         =     LED_BUILTIN; //13;
 
 #else
 
@@ -53,6 +57,10 @@ const int led = LED_BUILTIN; //13;
 #include <mDNS.h>
 
 WebServer server(80);
+
+//?#define   ANALOG_PIN        A0
+//?#define   DI_INPUT_SWITCH   D1
+//?const int led         =     LED_BUILTIN; //13;
 
 #endif // MY_CARD_IS_ESP32
 
@@ -75,9 +83,9 @@ WebServer server(80);
 long loopCounter_big        =0;
 //long loopCounter_read_analog=0; // all sensors are measured by interrupt
 
-const int led_by_Board        = led;
-#define ANALOG_PIN_by_Board   ANALOG_PIN
-#define DI_INPUT_SWITCH_by_Board DI_INPUT_SWITCH
+const int   led_by_Board            = led;
+#define     ANALOG_PIN_by_Board       ANALOG_PIN
+#define     DI_INPUT_SWITCH_by_Board  DI_INPUT_SWITCH
 
 #define SERIAL_BAUD_RATE      115200
 #define DIGITAL_ON            LOW
@@ -191,7 +199,7 @@ void setup(void)
   Serial.begin(SERIAL_BAUD_RATE);
 
   ////////////////
-  #if defined(MY_WIFI_TYPE_IS_STA) || defined(MY_WIFI_TYPE_IS_BOTH)
+#if defined(MY_WIFI_TYPE_IS_STA) || defined(MY_WIFI_TYPE_IS_BOTH)
   WiFi.mode(WIFI_STA);
   WiFi.begin(STASSID, STAPSK);
 
@@ -215,16 +223,26 @@ void setup(void)
     Serial.print(MDNS_desired_name);
     Serial.println("', is started");
   }
-  #endif // MY_WIFI_TYPE_IS_STA || MY_WIFI_TYPE_IS_BOTH
+#endif // MY_WIFI_TYPE_IS_STA || MY_WIFI_TYPE_IS_BOTH
   ///////////////////////////////
-  #if defined(MY_WIFI_TYPE_IS_AP) || defined(MY_WIFI_TYPE_IS_BOTH)
+#if defined(MY_WIFI_TYPE_IS_AP) || defined(MY_WIFI_TYPE_IS_BOTH)
   WiFi.mode(WIFI_AP); //Access Point mode
   WiFi.softAP(AP_ssid, AP_password);
+  
+  /* Put IP Address details */
+  IPAddress local_ip(192,168,  1, 1);
+  IPAddress gateway (192,168,  1, 1);
+  IPAddress subnet  (255,255,255, 0);
+  
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  
   delay(200);   
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(IP);
-  #endif //
+
+
+#endif //
   ///////////////////////////////
 
   /* server events */
