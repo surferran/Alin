@@ -11,3 +11,8 @@ enum
 	wifi_mode_STA,
 	wifi_mode_BOTH
 } wifi_modes;
+
+enum{
+	run_mode_Full_HW,
+	run_mode_Simulated_HW
+} my_run_modes;

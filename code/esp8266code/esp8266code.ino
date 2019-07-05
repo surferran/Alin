@@ -92,19 +92,24 @@ const int   led_by_Board            = led;
 #define DIGITAL_OFF           HIGH
 #define HALF_SEC_IN_mS           500
 #define MINIMUM_1_mS               1
+#define MILLIS_TO_SEC              0.001
 
-struct sensorsValues
+struct systemVariables
 {
-  int     systemTime;              // controller counter
-  int     potentiometerRaw;        // 0-1023 value range
-  bool    digitalInput;            // 0 or 1
+  /* sensors */
+  int     systemTime;              // controller time since reset [sec]
+  int     potentiometer_Raw;       // 0-1023 value range . potentiometer or encoder before translation to physical meaning
+  bool    safetyStop;              // T/F. Normally Open (default is true value). only when user press switch, the motor is enabled. 
+  /* user parameters */
   int     number_of_moves;         // calculated value for number of excercise moves
-} systemSensors;  // or systemData
+} systemVars;  // or systemData
 
 ///////////////////////////////
 
  /** functions headers */
-void  handleRoot();
+void  handleRoot();  // direct to user first login and register and setup, or admin setup and reset
+void  handleRawDataPage();
+void  handleADC();
 void  handleNotFound();
 void  setup();
 void  loop();
@@ -134,7 +139,7 @@ void getEncoder() // function operated by client HTML (AJAX)
  double encoderDelta  = read_and_print_analog(); // rotaryEncoder.encoderChanged();
  String encValue      = String(encoderDelta);
 
- systemSensors.potentiometerRaw = encoderDelta;
+ systemVars.potentiometer_Raw = encoderDelta;
  
  //server.send(200, "text/plane", encValue); //Send encoder value only to client ajax request
  //String encValue = String(millis());
@@ -147,17 +152,17 @@ void handleRawDataPage()  // todo: operate by interupt? because 0.5 sec delay on
 
   char intToPrint[5];
   String urlResponse = "hello from 'Alin Esp board'!  \n saw your led blinks?? \n current readings are:\n ";  
-  itoa(systemSensors.potentiometerRaw , intToPrint, 10); //integer to string conversion 
+  itoa(systemVars.potentiometer_Raw , intToPrint, 10); //integer to string conversion 
   urlResponse  += "\nanalog_reading \t\t= ";
   urlResponse  += intToPrint; 
-  itoa(systemSensors.systemTime       , intToPrint, 10);
+  itoa(systemVars.systemTime       , intToPrint, 10);
   urlResponse  += "\ntime_of_reading \t= ";
   urlResponse  += intToPrint;   
-  //itoa(systemSensors.digitalInput     , intToPrint, 1);
-  //intToPrint = systemSensors.digitalInput ? "On":"Off";
+  //itoa(systemVars.safetyStop     , intToPrint, 1);
+  //intToPrint = systemVars.safetyStop ? "On":"Off"  ;
   urlResponse  += "\ndigital status is\t= ";
   //urlResponse  += intToPrint;
-  urlResponse  += systemSensors.digitalInput ? "On":"Off";
+  urlResponse  += systemVars.safetyStop ? "On":"Off";
 
   server.send(200, "text/plain", urlResponse);
 
@@ -246,12 +251,11 @@ void setup(void)
   ///////////////////////////////
 
   /* server events */
-  server.on("/", handleRoot);           //This is display page
-  server.on("/readADC", handleADC);     //To get update of ADC Value only
-  server.on("/getEncoder", getEncoder); //To get update of ADC Value only
-  server.on("/rawValues", handleRawDataPage); //To get update on all Values
-
-  server.onNotFound(handleNotFound);
+  server.on("/",            handleRoot);           //This is display page
+  server.on("/readADC",     handleADC);     //To get update of ADC Value only
+  server.on("/getEncoder",  getEncoder); //To get update of ADC Value only
+  server.on("/rawValues",   handleRawDataPage); //To get update on all Values
+  server.onNotFound        (handleNotFound);
 
   server.begin();
   Serial.println("HTTP server started"); 
@@ -261,10 +265,10 @@ void setup(void)
   Serial.println(welcomeString);
 
 /* init output stucture */
- systemSensors.digitalInput     = false;
- systemSensors.potentiometerRaw = 0;
- systemSensors.systemTime       = 0;
- systemSensors.number_of_moves  = 0;
+ systemVars.safetyStop     = false;  
+ systemVars.potentiometer_Raw = 0;
+ systemVars.systemTime       = 0;
+ systemVars.number_of_moves  = 0;
 }
 
 
@@ -278,13 +282,13 @@ void loop(void)
 
   //if (loopCounter_read_analog > 100)  //32000
   //{
-  //  systemSensors.potentiometerRaw = read_and_print_analog();
+  //  systemVars.potentiometer_Raw = read_and_print_analog();
   //  loopCounter_read_analog = 0;
   //}
 
   ++loopCounter_big;  //millis(); // ?
   //++loopCounter_read_analog;
-  systemSensors.systemTime = millis();///loopCounter_big / 1000.; // ruffly mS to sec. assuming really 1mS delay between loops
+  systemVars.systemTime = millis() * MILLIS_TO_SEC; 
   delay(MINIMUM_1_mS);
 }
 
@@ -296,7 +300,7 @@ void print_led_state()
   int ledVal=0;
   ledVal = digitalRead(led_by_Board);
 
-  systemSensors.digitalInput = (ledVal == 0);
+  systemVars.safetyStop = (ledVal ==   0);
 
   Serial.print("led: ");  
   Serial.println(ledVal);
@@ -318,7 +322,7 @@ int read_and_print_analog()
 {
   double analogVal=0;
   //analogVal = analogRead(ANALOG_PIN);
-  analogVal = loopCounter_big;//simulatied_analog_as_sin(systemSensors.systemTime);
+  analogVal = loopCounter_big;//simulatied_analog_as_sin(systemVars.systemTime);
 
   Serial.print("analogVal: ");  
   Serial.println(analogVal);      // can do val/1023 [%] or other calculated ratio..
