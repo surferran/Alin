@@ -26,6 +26,7 @@ todo:
   *  https://code.sololearn.com/WFQ8aQXVM54F/#html    // try html online
   *  https://techtutorialsx.com/2016/10/15/esp8266-http-server-serving-html-javascript-and-css/
   *  https://techtutorialsx.com/2018/09/13/esp32-arduino-web-server-receiving-data-from-javascript-websocket-client/
+  *  https://randomnerdtutorials.com/esp32-flash-memory/
   * 
   *  setting the (soft)ip to constant: 192.168.1.1
   *  stting time out to router connection, and alarm to StandAlone mode. TODO
@@ -74,6 +75,7 @@ WebServer server(80);
 ///////////////////////////////
 
 #include <WiFiClient.h>
+#include <EEPROM.h> //read and write from flash memory
 
 #include "index.h"                //Web page header file
 #include "user_ssid_details.h"    // inside: AP_SSID and AP_PASSWORD
@@ -99,6 +101,8 @@ const int   led_by_Board            = led;
 #define HALF_SEC_IN_mS           500
 #define MINIMUM_1_mS               1
 #define MILLIS_TO_SEC              0.001
+
+#define EEPROM_SIZE               10    // define the total number of bytes to access to
 
 struct systemVariables
 {
@@ -208,6 +212,16 @@ void setup(void)
 
   /* communications setup */
   Serial.begin(SERIAL_BAUD_RATE);
+  delay(2 * HALF_SEC_IN_mS); //   
+  /* set and read from FLASH memory */
+  EEPROM.begin(EEPROM_SIZE);   // initialize EEPROM with predefined size
+  int flashData[EEPROM_SIZE];
+  for (int ndx=0; ndx<EEPROM_SIZE; ndx++)
+  {
+    flashData[ndx] = EEPROM.read(ndx);
+    Serial.println("flash data %d is %d",ndx, flashData[ndx]);
+  }
+  // todo: decide what to do with these bytes
 
   ////////////////
 #if defined(MY_WIFI_TYPE_IS_STA) || defined(MY_WIFI_TYPE_IS_BOTH)
@@ -300,6 +314,13 @@ void loop(void)
 
 //////////////////////////////////////////////////////////////
 /** utils functions */
+
+void writeByteToFlash(int address, int data)
+{
+    EEPROM.write(address, data);
+    EEPROM.commit();
+    Serial.println("requested data saved in flash memory");
+}
 
 void print_led_state()
 {
