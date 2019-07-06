@@ -14,5 +14,6 @@ enum
 
 enum{
 	run_mode_Full_HW,
+	run_mode_Encoder_connected,
 	run_mode_Simulated_HW
 } my_run_modes;

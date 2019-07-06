@@ -6,10 +6,10 @@
 /**
  * serial output is set at 115200:
  *  http connection will be to address (todo: build those as tests, after implementation)
- *  http://10.0.0.70/
- *  http://10.0.0.70/?hhvjv 
- *  http://10.0.0.70/arg?arg1=5;analog1=3
- *  http://10.0.0.70/inline
+ *  http://192.168.1.1/
+ *  http://192.168.1.1/?hhvjv 
+ *  http://192.168.1.1/arg?arg1=5;analog1=3
+ *  http://192.168.1.1/inline
  * connections are to local touter, or acting as stand alone Access Point.
 
 todo:
@@ -23,7 +23,10 @@ todo:
  */
  /* more ref from
   *  https://robotzero.one/sending-data-esp8266-to-esp8266/
-  *  
+  *  https://code.sololearn.com/WFQ8aQXVM54F/#html    // try html online
+  *  https://techtutorialsx.com/2016/10/15/esp8266-http-server-serving-html-javascript-and-css/
+  *  https://techtutorialsx.com/2018/09/13/esp32-arduino-web-server-receiving-data-from-javascript-websocket-client/
+  * 
   *  setting the (soft)ip to constant: 192.168.1.1
   *  stting time out to router connection, and alarm to StandAlone mode. TODO
   *  
@@ -35,6 +38,9 @@ todo:
 #define MY_WIFI_TYPE_IS_AP
 //#define MY_WIFI_TYPE_IS_STA
 //#define MY_WIFI_TYPE_IS_BOTH
+#define MY_run_mode_IS_Simulated_HW
+//#define MY_run_mode_IS_EncoderOnly_HW
+//#define MY_run_mode_IS_FULL_HW      // connected sensors, and motors
 ///////////////////////////////
 
 #ifdef MY_CARD_IS_ESP8266
