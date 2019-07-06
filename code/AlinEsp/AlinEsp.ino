@@ -114,6 +114,12 @@ struct systemVariables
   int     number_of_moves;         // calculated value for number of excercise moves
 } systemVars;  // or systemData
 
+struct EEPROMvars
+{
+  int boardSN;
+  int timesOfResets;
+  
+} eepromVariables;
 ///////////////////////////////
 
  /** functions headers */
@@ -149,11 +155,11 @@ void getEncoder() // function operated by client HTML (AJAX)
  double encoderDelta  = read_and_print_analog(); // rotaryEncoder.encoderChanged();
  String encValue      = String(encoderDelta);
 
- systemVars.potentiometer_Raw = encoderDelta;
- 
  //server.send(200, "text/plane", encValue); //Send encoder value only to client ajax request
  //String encValue = String(millis());
  server.send(200, "text/plane", encValue);
+ 
+ systemVars.potentiometer_Raw = encoderDelta;
 }
 
 void handleRawDataPage()  // todo: operate by interupt? because 0.5 sec delay on exit.
@@ -213,15 +219,25 @@ void setup(void)
   /* communications setup */
   Serial.begin(SERIAL_BAUD_RATE);
   delay(2 * HALF_SEC_IN_mS); //   
+
   /* set and read from FLASH memory */
   EEPROM.begin(EEPROM_SIZE);   // initialize EEPROM with predefined size
+  /******* do only in production: reset alll Flash data */
+  //burn_production_data();
+  /**************************************************** */
   int flashData[EEPROM_SIZE];
   for (int ndx=0; ndx<EEPROM_SIZE; ndx++)
   {
     flashData[ndx] = EEPROM.read(ndx);
-    Serial.println("flash data %d is %d",ndx, flashData[ndx]);
+    Serial.print("flash data ");
+    Serial.print(ndx);
+    Serial.print(" is ");
+    Serial.println(flashData[ndx]);
   }
   // todo: decide what to do with these bytes
+  eepromVariables.boardSN = flashData[0];
+  eepromVariables.timesOfResets = flashData[1] + 1;
+  writeByteToFlash(1, eepromVariables.timesOfResets);
 
   ////////////////
 #if defined(MY_WIFI_TYPE_IS_STA) || defined(MY_WIFI_TYPE_IS_BOTH)
@@ -315,11 +331,31 @@ void loop(void)
 //////////////////////////////////////////////////////////////
 /** utils functions */
 
+/**
+ * @brief 
+ *        write data to byte in a given address, 0 to EEPROM_SIZE.
+ *        every data can be in 0 to 255 value range.
+ * @param address 
+ * @param data 
+ */
 void writeByteToFlash(int address, int data)
 {
     EEPROM.write(address, data);
     EEPROM.commit();
     Serial.println("requested data saved in flash memory");
+}
+
+void burn_production_data()
+{
+  eepromVariables.boardSN = 001;
+  writeByteToFlash(0, eepromVariables.boardSN); 
+
+  for (int ndx=1; ndx<EEPROM_SIZE; ndx++)
+  {
+    writeByteToFlash(ndx, 0);
+    Serial.print("burned 0 flash data in index ");
+    Serial.print(ndx);
+  }  
 }
 
 void print_led_state()
@@ -349,7 +385,9 @@ int read_and_print_analog()
 {
   double analogVal=0;
   //analogVal = analogRead(ANALOG_PIN);
-  analogVal = loopCounter_big;//simulatied_analog_as_sin(systemVars.systemTime);
+  //analogVal = loopCounter_big;
+  analogVal = simulatied_analog_as_sin(systemVars.systemTime);
+  //analogVal = systemVars.systemTime;
 
   Serial.print("analogVal: ");  
   Serial.println(analogVal);      // can do val/1023 [%] or other calculated ratio..
@@ -360,16 +398,18 @@ int read_and_print_analog()
 /**
  * @brief 
  *      produce analog sinus sign
- *      by a = A*sin(2*pi*w*t)
+ *      by a = A*sin(w*t + phi)  
+ *      ( 2. * 3.14 * f == w )
+ *      ( phi = 0 )
  * @param time 
  * @return double 
  */
 double simulatied_analog_as_sin(double time)
 {
-  static double freq      = 1.; //[hz]
-  static double amplitude = 1.; //[-]
+  static double freq      = 100.; //[hz] // but its not realy HZ RealTime
+  static double amplitude = 100.; //[-]
 
-  double signal_output = amplitude * sin (2.*3.14*freq*time);
+  double signal_output = amplitude * sin (2. * 3.14 * freq * time);
 
   return signal_output;
 }

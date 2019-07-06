@@ -3,7 +3,7 @@ const char MAIN_page[] PROGMEM = R"=====(
 <html>
 <head>
 
-<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
 <title>Alin web page</title>
 
 <style>
@@ -29,45 +29,21 @@ const char MAIN_page[] PROGMEM = R"=====(
   <h1>Sensor Value:<span id="encValue">0</span></h1><br>
 </div>
 
-<svg width="500" height="1050">
-    <rect width="150" height="50" fill="red">
-        <animate attributeName="x" from="-150" to="490" dur="1000ms" fill="freeze" repeatCount="1"/> 
+<svg viewBox = "400 00 600 300">
+    <circle class="head" id="head"     cx="500" cy="80"  r="25" stroke="#404041" />
+    <rect  class="bPart0" id="body"      x="500"  y="105" width="70" height="10" transform = "rotate(+90  500 110)"
+                                                                    fill= "yellow" stroke= "green" stroke-width= "1"/>
+    <rect  class="bPart1" id="right_arm" x="500"  y="105" width="70" height="6" transform = "rotate(+30  500 108)" />
+    <rect  class="bPart1" id="left_arm"  x="500"  y="105" width="70" height="6" transform = "rotate(+150 500 108)" />
+	
+    <rect  class="bPart2" id="right_leg" x="500"  y="175" width="100" height="10" > 
+        <!--transform = "rotate(+30  500 178)"-->
+        <animateTransform attributeName="transform" type="rotate"
+        from="85  500 180" to="15  500 180" dur="3s" repeatDur="indefinite" fill="freeze"/>     
     </rect>
-
-    <circle cx="170" cy="170" r="16" stroke="#E2007C"/>
-
+    <rect  class="bPart2" id="left_leg"  x="500"  y="175" width="100" height="10" transform = "rotate(+120 500 180)" />
 </svg>
 
-<svg width="1000" height="1050">
-    <rect width="150" height="50" fill="red">
-        <animate attributeName="x" from="-150" to="450"
-      dur="1000ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-    <rect y=50 width="150" height="50" fill="orange">
-        <animate attributeName="x" from="-150" to="450"
-      dur="1200ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-    <rect y=100 width="150" height="50" fill="yellow">
-        <animate attributeName="x" from="-150" to="450"
-      dur="1400ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-    <rect y=150 width="150" height="50" fill="lightgreen">
-        <animate attributeName="x" from="-150" to="450"
-      dur="1600ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-    <rect y=200 width="150" height="50" fill="cyan">
-        <animate attributeName="x" from="-150" to="450"
-      dur="1800ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-    <rect y=250 width="150" height="50" fill="deepskyblue">
-        <animate attributeName="x" from="-150" to="450"
-      dur="2000ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-    <rect y=300 width="150" height="50" fill="purple">
-        <animate attributeName="x" from="-150" to="450"
-      dur="2200ms" fill="freeze" repeatCount="indefinite"/> 
-    </rect>
-</svg>
 
 <script>
 
@@ -86,6 +62,27 @@ function getData() {
   };
   xhttp.open("GET", "getEncoder", true);
   xhttp.send();
+}
+
+var thetaDelta  = 1;
+var c           = document.getElementById('left_leg')
+var direction   = +1;
+var requestAnimationFrameID;
+c.currentTheta  = 120; 
+c.transform.baseVal.getItem(0).setRotate(c.currentTheta, 500, 180); 
+requestAnimationFrameID = requestAnimationFrame(doAnim); // Start the animation loop.
+
+function doAnim()
+{
+	if (c.currentTheta > 165)
+		direction = -1;
+	if (c.currentTheta < 95)
+		direction = +1;
+	  
+	c.currentTheta += direction * thetaDelta;
+	c.transform.baseVal.getItem(0).setRotate(c.currentTheta, 500, 180); 
+	
+	requestAnimationFrameID = requestAnimationFrame(doAnim); // continue the animation .
 }
 
 </script>
