@@ -369,7 +369,7 @@ void print_led_state()
   Serial.println(ledVal);
 }
 
-void blink_example_cycle() 
+void blink_example_cycle()
 {
   /* light on */
   digitalWrite(led_by_Board, LOW);   // Turn the LED on (Note that LOW is the voltage level
