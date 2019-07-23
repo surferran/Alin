@@ -1,6 +1,5 @@
 /** 
- * file : esp8266code.ino * 
- * todo: change to EspAlin.ino
+ * file : AlynEsp.ino 
 */
 
 /**
@@ -36,6 +35,7 @@ todo:
 #include "general_defs.h"
 #define MY_CARD_IS_ESP8266
 //#define MY_CARD_IS_ESP32
+//#define MY_CARD_IS_D1_MINI_PRO
 #define MY_WIFI_TYPE_IS_AP
 //#define MY_WIFI_TYPE_IS_STA
 //#define MY_WIFI_TYPE_IS_BOTH
@@ -69,6 +69,20 @@ WebServer server(80);
 //?#define   DI_INPUT_SWITCH   D1
 //?const int led         =     LED_BUILTIN; //13;
 
+#else
+
+#ifdef MY_CARD_IS_D1_MINI_PRO
+
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>
+ESP8266WebServer server(80);
+#define   ANALOG_PIN        A0
+#define   DI_INPUT_SWITCH   D1
+const int led         =     LED_BUILTIN; //13;
+ 
+#endif //MY_CARD_IS_D1_MINI_PRO
+
 #endif // MY_CARD_IS_ESP32
 
 #endif  // MY_CARD_IS_ESP8266
@@ -85,7 +99,7 @@ WebServer server(80);
  #define STAPSK  "your-password"
 #endif
 
-#define MDNS_desired_name "AlinEspBoard"
+#define MDNS_desired_name "AlynEspBoard"
 ///////////////////////////////
 
 long loopCounter_big        =0;
@@ -167,7 +181,7 @@ void handleRawDataPage()  // todo: operate by interupt? because 0.5 sec delay on
   digitalWrite(led_by_Board, DIGITAL_ON);
 
   char intToPrint[5];
-  String urlResponse = "hello from 'Alin Esp board'!  \n saw your led blinks?? \n current readings are:\n ";  
+  String urlResponse = "hello from 'Alyn Esp board'!  \n saw your led blinks?? \n current readings are:\n ";  
   itoa(systemVars.potentiometer_Raw , intToPrint, 10); //integer to string conversion 
   urlResponse  += "\nanalog_reading \t\t= ";
   urlResponse  += intToPrint; 
@@ -296,7 +310,7 @@ void setup(void)
   server.begin();
   Serial.println("HTTP server started"); 
 
-  String welcomeString = "'ESP Alin board' init is done";
+  String welcomeString = "'ESP Alyn board' init is done";
   Serial.println("");
   Serial.println(welcomeString);
 
