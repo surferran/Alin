@@ -1,0 +1,28 @@
+1.https://github.com/zeromq/libzmq
+follow readme notes.
+
+use notes in 
+http://zeromq.org/area:download
+or 
+http://zeromq.org/intro:get-the-software
+
+can watch also in
+https://github.com/zeromq/libzmq/releases
+
+https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
+
+download cmake 
+https://cmake.org/download/
+
+
+https://cmake.org/cmake-tutorial/
+
+cmake and vs 2017 
+https://www.youtube.com/watch?v=_lKxJjV8r3Y
+https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2017
+
+watch at 
+https://stackoverflow.com/questions/42701019/problems-generating-solution-for-vs-2017-with-cmake
+
+
+cmake -S . -B .\build_outputs
