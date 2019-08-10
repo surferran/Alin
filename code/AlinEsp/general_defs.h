@@ -2,8 +2,7 @@ enum
 {
 	card_type_D1_Mini,
 	card_type_ESP8266,
-	card_type_ESP32,
-	card_type_D1_mini_Pro
+	card_type_ESP32
 } my_cards;
 
 enum

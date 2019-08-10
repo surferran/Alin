@@ -30,12 +30,15 @@ todo:
   *  setting the (soft)ip to constant: 192.168.1.1
   *  stting time out to router connection, and alarm to StandAlone mode. TODO
   *  
+  *  encoder ref: 
+  *  1. https://github.com/igorantolic/ai-esp32-rotary-encoder
+  *  2. https://circuits4you.com/2018/11/20/web-server-on-esp32-how-to-update-and-display-sensor-values/
+  *  3. https://randomnerdtutorials.com/esp32-access-point-ap-web-server/
   */
 ///////////////////////////////
 #include "general_defs.h"
-#define MY_CARD_IS_ESP8266
+#define MY_CARD_IS_ESP8266  //same as #define MY_CARD_IS_D1_MINI_PRO
 //#define MY_CARD_IS_ESP32
-//#define MY_CARD_IS_D1_MINI_PRO
 #define MY_WIFI_TYPE_IS_AP
 //#define MY_WIFI_TYPE_IS_STA
 //#define MY_WIFI_TYPE_IS_BOTH
@@ -49,6 +52,10 @@ todo:
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+
+#include <arduino.h>
+#include "./RotaryEncoder_lib/RotaryEncoder.h"
+
 ESP8266WebServer server(80);
 #define   ANALOG_PIN        A0
 #define   DI_INPUT_SWITCH   D1
@@ -62,6 +69,9 @@ const int led         =     LED_BUILTIN; //13;
 #include <WiFi.h>
 #include <WebServer.h>
 #include <mDNS.h>
+
+/* for encoder */
+#include "AiEsp32RotaryEncoder.h"
 
 WebServer server(80);
 
@@ -148,6 +158,101 @@ void  blink_example_cycle();
 int   read_and_print_analog();
 ////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/*
+connecting Rotary encoder (using interupts)
+CLK (A pin) - to any microcontroler intput pin with interrupt -> in this example pin 32->21
+DT (B pin) - to any microcontroler intput pin with interrupt -> in this example pin 21->32
+SW (button pin) - to any microcontroler intput pin -> in this example pin 25 - not in use
+VCC - to microcontroler VCC (then set ROTARY_ENCODER_VCC_PIN -1) or in this example pin 25
+GND - to microcontroler GND
+*/
+#define ROTARY_ENCODER_A_PIN      6// D6 // clk Clock    // GPIO_NUM_21  // <- ESP32
+#define ROTARY_ENCODER_B_PIN      7// D7 // DT Data      // GPIO_NUM_32  // <- ESP32
+
+//#define ROTARY_ENCODER_VCC_PIN    -1 /*put -1 of Rotary encoder Vcc is connected directly to 3,3V; else you can use declared output pin for powering rotary encoder */
+//#define MAX_ROTATION_RESOLUTION   100   // number of steps
+//AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, ROTARY_ENCODER_VCC_PIN); //esp32
+
+
+RotaryEncoder rotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN);
+
+
+int test_limits = 2;
+
+int RightVal=0, LeftVal=0,  legMoveCount=0, flagLeft, flagRight; //YARC 
+int acceptRang = 40; // minimal encoder range to increese conter // for ESP32 was 60; 
+
+int oldPos=0;
+int newPos=0;
+
+int16_t encoderChanged(){
+  newPos = rotaryEncoder.getPosition();
+  int16_t res = newPos>oldPos ? 1 : ( newPos<oldPos ? -1 : 0 );
+  oldPos = newPos;
+  return res;
+}
+
+
+void rotary_loop() {
+  rotaryEncoder.tick();
+  
+  //lets see if anything changed
+  int16_t encoderDelta = encoderChanged();  //YARC rotaryEncoder.encoderChanged();
+
+  //for some cases we only want to know if value is increased or decreased (typically for menu items)
+    //Serial.print("check delta");
+  if (encoderDelta>0) 
+    Serial.print("+");
+  if (encoderDelta<0) 
+    Serial.print("-");
+
+    
+
+  //for other cases we want to know what is current value. Additionally often we only want if something changed
+  //example: when using rotary encoder to set termostat temperature, or sound volume etc
+  
+  //if value is changed compared to our last read
+  if (encoderDelta!=0) {
+    //now we need current value
+   //YARC int16_t encoderValue = rotaryEncoder.readEncoder();
+
+    ////========================
+    if (encoderDelta == 1) 
+    {
+        RightVal = RightVal + encoderDelta; // encoderValue;
+        LeftVal = 0; flagLeft = 0;
+        if ((RightVal > acceptRang) and (flagRight==0))
+        {
+          flagRight = 1; legMoveCount++;
+          LeftVal =0; 
+        }
+    }
+   else if (encoderDelta == -1)
+    {
+        LeftVal  = LeftVal + abs(encoderDelta); //encoderValue;
+        RightVal = 0; flagRight = 0;
+       if ((LeftVal > acceptRang) and (flagLeft==0))
+        {
+            flagLeft = 1; legMoveCount++;
+            RightVal =0; 
+        }
+   }
+    ////========================
+   
+    //process new value. Here is simple output.
+    Serial.print("Value: ");
+   // Serial.print(encoderValue); 
+
+    Serial.print(", delta: ");        Serial.print(encoderDelta); //YARC  
+    Serial.print(", RightVal: ");     Serial.print(RightVal); //YARC
+    Serial.print(", LeftVal: ");      Serial.print(LeftVal); //YARC
+    Serial.print(", Cnt: ");          Serial.println(legMoveCount);  //YARC
+    
+  }  
+}
+
 //===============================================================
 // This routine is executed when you open its IP in browser
 //===============================================================
@@ -163,7 +268,7 @@ void handleADC() {
  server.send(200, "text/plane", adcValue); //Send ADC value only to client ajax request
 }
 
-void getEncoder() // function operated by client HTML (AJAX)
+void getEncoder_ESP32() // function operated by client HTML (AJAX)
 {
  //int16_t encoderDelta = read_and_print_analog(); // rotaryEncoder.encoderChanged();
  double encoderDelta  = read_and_print_analog(); // rotaryEncoder.encoderChanged();
@@ -174,6 +279,16 @@ void getEncoder() // function operated by client HTML (AJAX)
  server.send(200, "text/plane", encValue);
  
  systemVars.potentiometer_Raw = encoderDelta;
+}
+
+
+void getEncoder() {
+ int16_t encoderDelta = encoderChanged();  //yarc  rotaryEncoder.encoderChanged();
+ String encValue =  String(legMoveCount); ///Send Counter ############################ //String(encoderDelta);
+ 
+ //server.send(200, "text/plane", encValue); //Send encoder value only to client ajax request
+ //debug: String encValue = String(millis());
+ server.send(200, "text/plane", encValue);
 }
 
 void handleRawDataPage()  // todo: operate by interupt? because 0.5 sec delay on exit.
@@ -314,6 +429,15 @@ void setup(void)
   Serial.println("");
   Serial.println(welcomeString);
 
+  /* encoder related */
+  //we must initialize rorary encoder 
+  //YARC rotaryEncoder.begin();
+  //YARC rotaryEncoder.setup([]{rotaryEncoder.readEncoder_ISR();});
+  //optionally we can set boundaries and if values should cycle or not
+  //YARC rotaryEncoder.setBoundaries(0, MAX_ROTATION_RESOLUTION, true); //minValue, maxValue, cycle values (when max go to min and vice versa)
+  Serial.print("Encoder is assumed as Ready");
+
+
 /* init output stucture */
  systemVars.safetyStop     = false;  
  systemVars.potentiometer_Raw = 0;
@@ -327,6 +451,8 @@ void loop(void)
 {
   server.handleClient();
   MDNS.update();
+
+  rotary_loop();
 
   // bad for your debugging eyes.. : to run only for alive test : blink_example_cycle();
 
