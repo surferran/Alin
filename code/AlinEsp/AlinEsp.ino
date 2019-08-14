@@ -34,6 +34,7 @@ todo:
   *  1. https://github.com/igorantolic/ai-esp32-rotary-encoder
   *  2. https://circuits4you.com/2018/11/20/web-server-on-esp32-how-to-update-and-display-sensor-values/
   *  3. https://randomnerdtutorials.com/esp32-access-point-ap-web-server/
+  *  4. https://www.hackster.io/mitov/esp8266-wi-fi-remote-control-servo-with-rotary-encoder-1a35fa
   */
 ///////////////////////////////
 #include "general_defs.h"
@@ -54,7 +55,8 @@ todo:
 #include <ESP8266mDNS.h>
 
 #include <arduino.h>
-#include "./RotaryEncoder_lib/RotaryEncoder.h"
+//#include "./RotaryEncoder_lib/RotaryEncoder.h"
+#include <RotaryEncoder.h>
 
 ESP8266WebServer server(80);
 #define   ANALOG_PIN        A0
@@ -168,8 +170,10 @@ SW (button pin) - to any microcontroler intput pin -> in this example pin 25 - n
 VCC - to microcontroler VCC (then set ROTARY_ENCODER_VCC_PIN -1) or in this example pin 25
 GND - to microcontroler GND
 */
-#define ROTARY_ENCODER_A_PIN      6// D6 // clk Clock    // GPIO_NUM_21  // <- ESP32
-#define ROTARY_ENCODER_B_PIN      7// D7 // DT Data      // GPIO_NUM_32  // <- ESP32
+//const uint8_t D6 = 6;
+//const uint8_t D7 = 7;
+#define ROTARY_ENCODER_A_PIN      4 // clk Clock    // GPIO_NUM_21  // <- ESP32
+#define ROTARY_ENCODER_B_PIN      0 // DT Data      // GPIO_NUM_32  // <- ESP32
 
 //#define ROTARY_ENCODER_VCC_PIN    -1 /*put -1 of Rotary encoder Vcc is connected directly to 3,3V; else you can use declared output pin for powering rotary encoder */
 //#define MAX_ROTATION_RESOLUTION   100   // number of steps
@@ -223,7 +227,7 @@ void rotary_loop() {
     {
         RightVal = RightVal + encoderDelta; // encoderValue;
         LeftVal = 0; flagLeft = 0;
-        if ((RightVal > acceptRang) and (flagRight==0))
+        if ((RightVal > acceptRang) && (flagRight==0))
         {
           flagRight = 1; legMoveCount++;
           LeftVal =0; 
@@ -233,7 +237,7 @@ void rotary_loop() {
     {
         LeftVal  = LeftVal + abs(encoderDelta); //encoderValue;
         RightVal = 0; flagRight = 0;
-       if ((LeftVal > acceptRang) and (flagLeft==0))
+       if ((LeftVal > acceptRang) && (flagLeft==0))
         {
             flagLeft = 1; legMoveCount++;
             RightVal =0; 
