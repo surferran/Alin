@@ -1,5 +1,0 @@
-ref to :
-https://randomnerdtutorials.com/esp32-pinout-reference-gpios/
-https://docs.espressif.com/projects/esp-idf/en/latest/get-started/get-started-devkitc.html
-(http://zguide.zeromq.org/cpp:hwclient)
-https://exploreembedded.com/wiki/Hello_World_with_ESP32_Explained
