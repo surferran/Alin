@@ -2,164 +2,12 @@
  * file : AlynEsp.ino 
 */
 
-/**
- * serial output is set at 115200:
- *  http connection will be to address (todo: build those as tests, after implementation)
- *  http://192.168.1.1/
- *  http://192.168.1.1/?hhvjv 
- *  http://192.168.1.1/arg?arg1=5;analog1=3
- *  http://192.168.1.1/inline
- * connections are to local touter, or acting as stand alone Access Point.
-
-todo:
-  server operation:
-  https://www.instructables.com/id/Programming-a-HTTP-Server-on-ESP-8266-12E/
-  ide: vscode with esp8266
-  read analog (copal jc10 10k ohm). red wire of the HW potentiometer will be the Analog input.
-    yellow, and green are to the 0,5V points.
-
- *  why must it connect to local router to act as wifi server??
- */
- /* more ref from
-  *  https://robotzero.one/sending-data-esp8266-to-esp8266/
-  *  https://code.sololearn.com/WFQ8aQXVM54F/#html    // try html online
-  *  https://techtutorialsx.com/2016/10/15/esp8266-http-server-serving-html-javascript-and-css/
-  *  https://techtutorialsx.com/2018/09/13/esp32-arduino-web-server-receiving-data-from-javascript-websocket-client/
-  *  https://randomnerdtutorials.com/esp32-flash-memory/
-  * 
-  *  setting the (soft)ip to constant: 192.168.1.1
-  *  stting time out to router connection, and alarm to StandAlone mode. TODO
-  *  
-  *  encoder ref: 
-  *  1. https://github.com/igorantolic/ai-esp32-rotary-encoder
-  *  2. https://circuits4you.com/2018/11/20/web-server-on-esp32-how-to-update-and-display-sensor-values/
-  *  3. https://randomnerdtutorials.com/esp32-access-point-ap-web-server/
-  *  4. https://www.hackster.io/mitov/esp8266-wi-fi-remote-control-servo-with-rotary-encoder-1a35fa
-  */
-///////////////////////////////
-#include "general_defs.h"
-#define MY_CARD_IS_ESP8266  //same as #define MY_CARD_IS_D1_MINI_PRO
-//#define MY_CARD_IS_ESP32
-#define MY_WIFI_TYPE_IS_AP
-//#define MY_WIFI_TYPE_IS_STA
-//#define MY_WIFI_TYPE_IS_BOTH
-#define MY_run_mode_IS_Simulated_HW
-//#define MY_run_mode_IS_EncoderOnly_HW
-//#define MY_run_mode_IS_FULL_HW      // connected sensors, and motors
+#include "AlynEsp.h"
 ///////////////////////////////
 
-#ifdef MY_CARD_IS_ESP8266
-
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-
-#include <arduino.h>
-//#include "./RotaryEncoder_lib/RotaryEncoder.h"
-#include <RotaryEncoder.h>
-
-ESP8266WebServer server(80);
-#define   ANALOG_PIN        A0
-#define   DI_INPUT_SWITCH   D1
-const int led         =     LED_BUILTIN; //13;
-
-#else
-
-#ifdef MY_CARD_IS_ESP32
-
-/* for web server */
-#include <WiFi.h>
-#include <WebServer.h>
-#include <mDNS.h>
-
-/* for encoder */
-#include "AiEsp32RotaryEncoder.h"
-
-WebServer server(80);
-
-//?#define   ANALOG_PIN        A0
-//?#define   DI_INPUT_SWITCH   D1
-//?const int led         =     LED_BUILTIN; //13;
-
-#else
-
-#ifdef MY_CARD_IS_D1_MINI_PRO
-
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266mDNS.h>
-ESP8266WebServer server(80);
-#define   ANALOG_PIN        A0
-#define   DI_INPUT_SWITCH   D1
-const int led         =     LED_BUILTIN; //13;
- 
-#endif //MY_CARD_IS_D1_MINI_PRO
-
-#endif // MY_CARD_IS_ESP32
-
-#endif  // MY_CARD_IS_ESP8266
-///////////////////////////////
-
-#include <WiFiClient.h>
-#include <EEPROM.h> //read and write from flash memory
-
-#include "index.h"                //Web page header file
-#include "user_ssid_details.h"    // inside: AP_SSID and AP_PASSWORD
-#include "private_server_details.h"
-#ifndef STASSID
- #define STASSID "your-ssid" 
- #define STAPSK  "your-password"
-#endif
-
-#define MDNS_desired_name "AlynEspBoard"
-///////////////////////////////
-
-long loopCounter_big        =0;
-//long loopCounter_read_analog=0; // all sensors are measured by interrupt
-
-const int   led_by_Board            = led;
-#define     ANALOG_PIN_by_Board       ANALOG_PIN
-#define     DI_INPUT_SWITCH_by_Board  DI_INPUT_SWITCH
-
-#define SERIAL_BAUD_RATE      115200
-#define DIGITAL_ON            LOW
-#define DIGITAL_OFF           HIGH
-#define HALF_SEC_IN_mS           500
-#define MINIMUM_1_mS               1
-#define MILLIS_TO_SEC              0.001
-
-#define EEPROM_SIZE               10    // define the total number of bytes to access to
-
-struct systemVariables
-{
-  /* sensors */
-  int     systemTime;              // controller time since reset [sec]
-  int     potentiometer_Raw;       // 0-1023 value range . potentiometer or encoder before translation to physical meaning
-  bool    safetyStop;              // T/F. Normally Open (default is true value). only when user press switch, the motor is enabled. 
-  /* user parameters */
-  int     number_of_moves;         // calculated value for number of excercise moves
-} systemVars;  // or systemData
-
-struct EEPROMvars
-{
-  int boardSN;
-  int timesOfResets;
-  
-} eepromVariables;
-///////////////////////////////
-
- /** functions headers */
-void  handleRoot();  // direct to user first login and register and setup, or admin setup and reset
-void  handleRawDataPage();
-void  handleADC();
-void  handleNotFound();
-void  setup();
-void  loop();
-void  print_led_state();
-void  blink_example_cycle();
-int   read_and_print_analog();
-////////////////////////////////////
-
+long            loopCounter_big = 0;
+EEPROMvars      eepromVariables = {0};
+systemVariables systemVars      = {0};     // or systemData
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -170,8 +18,6 @@ SW (button pin) - to any microcontroler intput pin -> in this example pin 25 - n
 VCC - to microcontroler VCC (then set ROTARY_ENCODER_VCC_PIN -1) or in this example pin 25
 GND - to microcontroler GND
 */
-//const uint8_t D6 = 6;
-//const uint8_t D7 = 7;
 #define ROTARY_ENCODER_A_PIN      4 // clk Clock    // GPIO_NUM_21  // <- ESP32
 #define ROTARY_ENCODER_B_PIN      0 // DT Data      // GPIO_NUM_32  // <- ESP32
 
@@ -210,9 +56,7 @@ void rotary_loop() {
   if (encoderDelta>0) 
     Serial.print("+");
   if (encoderDelta<0) 
-    Serial.print("-");
-
-    
+    Serial.print("-");    
 
   //for other cases we want to know what is current value. Additionally often we only want if something changed
   //example: when using rotary encoder to set termostat temperature, or sound volume etc
@@ -246,23 +90,20 @@ void rotary_loop() {
     ////========================
    
     //process new value. Here is simple output.
-    Serial.print("Value: ");
-   // Serial.print(encoderValue); 
-
-    Serial.print(", delta: ");        Serial.print(encoderDelta); //YARC  
-    Serial.print(", RightVal: ");     Serial.print(RightVal); //YARC
-    Serial.print(", LeftVal: ");      Serial.print(LeftVal); //YARC
-    Serial.print(", Cnt: ");          Serial.println(legMoveCount);  //YARC
-    
+    Serial.print(", delta: ");        Serial.print(encoderDelta);
+    Serial.print(", RightVal: ");     Serial.print(RightVal); 
+    Serial.print(", LeftVal: ");      Serial.print(LeftVal); 
+    Serial.print(", Cnt: ");          Serial.println(legMoveCount);  
   }  
 }
 
 //===============================================================
 // This routine is executed when you open its IP in browser
 //===============================================================
-void handleRoot() {
- String s = MAIN_page;              //Read HTML contents // depend on readADC()
- server.send(200, "text/html", s);  //Send web page
+void handleRoot() 
+{
+  String s = MAIN_page;              //Read HTML contents // depend on readADC()
+  server.send(200, "text/html", s);  //Send web page
 }
  
 void handleADC() {
@@ -278,7 +119,6 @@ void getEncoder_ESP32() // function operated by client HTML (AJAX)
  double encoderDelta  = read_and_print_analog(); // rotaryEncoder.encoderChanged();
  String encValue      = String(encoderDelta);
 
- //server.send(200, "text/plane", encValue); //Send encoder value only to client ajax request
  //String encValue = String(millis());
  server.send(200, "text/plane", encValue);
  
